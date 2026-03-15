@@ -58,9 +58,18 @@ const Config = {
   ],
   REQUEST_TIMEOUT: 30000,
   CACHE_DURATION: 5 * 60 * 1000,
+  MAX_CACHE_SIZE: 200,
   POSTER_CACHE: new Map(),
   DETAIL_CACHE: new Map(),
 };
+
+function limitedCacheSet(cache, key, value) {
+  if (cache.size >= Config.MAX_CACHE_SIZE) {
+    const firstKey = cache.keys().next().value;
+    cache.delete(firstKey);
+  }
+  cache.set(key, value);
+}
 
 const Storage = {
   get(key) {

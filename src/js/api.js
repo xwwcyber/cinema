@@ -88,7 +88,7 @@ const API = {
     const normalized = this.normalizeDetailData(data);
 
     if (normalized && normalized.length > 0) {
-      Config.DETAIL_CACHE.set(cacheKey, {
+      limitedCacheSet(Config.DETAIL_CACHE, cacheKey, {
         data: normalized[0],
         timestamp: Date.now(),
       });
@@ -108,7 +108,7 @@ const API = {
     try {
       const detail = await this.getVideoDetail(videoId);
       if (detail && detail.vod_pic) {
-        Config.POSTER_CACHE.set(cacheKey, detail.vod_pic);
+        limitedCacheSet(Config.POSTER_CACHE, cacheKey, detail.vod_pic);
         return detail.vod_pic;
       }
     } catch (e) {

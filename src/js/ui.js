@@ -246,16 +246,22 @@ const UI = {
   },
 
   async loadPostersAsync(videos) {
-    for (const video of videos) {
-      try {
-        const poster = await API.getPosterWithCache(video.vod_id);
-        const posterEl = document.getElementById(`poster-${video.vod_id}`);
-        if (posterEl && poster) {
-          posterEl.innerHTML = `<img src="${poster}" alt="${video.vod_name}" loading="lazy">`;
-        }
-      } catch (e) {
-        console.error(`Failed to load poster for ${video.vod_id}:`, e);
-      }
+    const batchSize = 5;
+    for (let i = 0; i < videos.length; i += batchSize) {
+      const batch = videos.slice(i, i + batchSize);
+      await Promise.all(
+        batch.map(async (video) => {
+          try {
+            const poster = await API.getPosterWithCache(video.vod_id);
+            const posterEl = document.getElementById(`poster-${video.vod_id}`);
+            if (posterEl && poster) {
+              posterEl.innerHTML = `<img src="${poster}" alt="${video.vod_name}" loading="lazy">`;
+            }
+          } catch (e) {
+            // 静默忽略海报加载失败
+          }
+        }),
+      );
     }
   },
 

@@ -12,7 +12,7 @@
       href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
       /* All player styles are in style.css */
     </style>
@@ -246,7 +246,16 @@
         loadVideoUrl(url) {
           this.showLoading(true);
           this.useProxy = false;
+          this._bindVideoEvents();
           this._loadHls(url, false);
+        },
+
+        _bindVideoEvents() {
+          if (this._eventsBound) return;
+          this._eventsBound = true;
+          this.video.addEventListener("waiting", () => this.showLoading(true));
+          this.video.addEventListener("playing", () => this.showLoading(false));
+          this.video.addEventListener("canplay", () => this.showLoading(false));
         },
 
         _loadHls(url, useProxy) {
@@ -340,10 +349,6 @@
               { once: true },
             );
           }
-
-          this.video.addEventListener("waiting", () => this.showLoading(true));
-          this.video.addEventListener("playing", () => this.showLoading(false));
-          this.video.addEventListener("canplay", () => this.showLoading(false));
         },
 
         showLoading(show) {

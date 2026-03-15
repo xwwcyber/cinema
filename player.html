@@ -223,9 +223,33 @@
           history.replaceState(null, "", newUrl);
         },
 
+        useProxy: false,
+
+        createHls(useProxy) {
+          const hlsConfig = {
+            maxBufferLength: 30,
+            maxMaxBufferLength: 60,
+            enableWorker: true,
+          };
+          if (useProxy) {
+            hlsConfig.xhrSetup = function (xhr, url) {
+              xhr.open(
+                "GET",
+                Config.PROXY_URL + "?url=" + encodeURIComponent(url),
+                true,
+              );
+            };
+          }
+          return new Hls(hlsConfig);
+        },
+
         loadVideoUrl(url) {
           this.showLoading(true);
+          this.useProxy = false;
+          this._loadHls(url, false);
+        },
 
+        _loadHls(url, useProxy) {
           if (this.hls) {
             this.hls.destroy();
             this.hls = null;
@@ -234,11 +258,8 @@
           const isM3u8 = url.includes(".m3u8");
 
           if (isM3u8 && Hls.isSupported()) {
-            this.hls = new Hls({
-              maxBufferLength: 30,
-              maxMaxBufferLength: 60,
-              enableWorker: true,
-            });
+            this.useProxy = useProxy;
+            this.hls = this.createHls(useProxy);
 
             this.hls.loadSource(url);
             this.hls.attachMedia(this.video);
@@ -258,8 +279,16 @@
               if (data.fatal) {
                 switch (data.type) {
                   case Hls.ErrorTypes.NETWORK_ERROR:
-                    UI.showToast("网络错误，正在重试...", "error");
-                    this.hls.startLoad();
+                    if (!this.useProxy) {
+                      console.log(
+                        "Direct access failed, retrying via proxy...",
+                      );
+                      UI.showToast("正在切换线路重试...", "error");
+                      this._loadHls(url, true);
+                      return;
+                    }
+                    this.showError("视频加载失败，请尝试其他播放源");
+                    this.hls.destroy();
                     break;
                   case Hls.ErrorTypes.MEDIA_ERROR:
                     UI.showToast("媒体错误，正在恢复...", "error");

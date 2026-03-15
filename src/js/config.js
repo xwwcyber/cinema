@@ -3,7 +3,7 @@ const Config = {
     window.location.hostname === "localhost" ||
     window.location.hostname === "127.0.0.1"
       ? "http://localhost:3001/proxy"
-      : "https://cinema-proxy.xwwcyber.workers.dev",
+      : "https://cinema-proxy.xwwcyber.workers.dev/proxy",
   STORAGE_KEYS: {
     SOURCES: "cinema_sources",
     CURRENT_SOURCE: "cinema_current_source",

@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="影视详情" />
+    <title>影视详情</title>
+    <link rel="stylesheet" href="src/css/style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-inner">
+        <a href="index.html" class="logo">
+          <div class="logo-icon">🎬</div>
+          <div class="logo-text">影视</div>
+        </a>
+
+        <nav class="nav-menu">
+          <a href="index.html" class="nav-item">首页</a>
+        </nav>
+
+        <div class="header-actions">
+          <div class="source-selector">
+            <button
+              class="source-selector-btn"
+              onclick="window.location.href = 'index.html'"
+            >
+              <span>返回首页</span>
+            </button>
+          </div>
+
+          <button
+            class="mobile-menu-btn"
+            onclick="window.location.href = 'index.html'"
+          >
+            ←
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="detail-page">
+        <div class="container">
+          <div id="detail-loading" class="loading-overlay active">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">正在加载详情...</div>
+          </div>
+
+          <div id="detail-content" style="display: none">
+            <div class="detail-header">
+              <div class="detail-poster">
+                <img id="detail-poster-img" src="" alt="" />
+              </div>
+              <div class="detail-info">
+                <h1 class="detail-title" id="detail-title"></h1>
+                <div class="detail-meta" id="detail-meta"></div>
+                <p class="detail-desc" id="detail-desc"></p>
+                <div class="detail-actions">
+                  <button class="btn btn-primary btn-lg" id="play-first-btn">
+                    ▶ 立即播放
+                  </button>
+                  <button
+                    class="btn btn-secondary btn-lg"
+                    onclick="window.location.href = 'index.html'"
+                  >
+                    返回首页
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="episode-section">
+              <div class="episode-header">
+                <h3 class="episode-title">选集播放</h3>
+              </div>
+              <div class="source-tabs" id="source-tabs"></div>
+              <div
+                class="episode-grid"
+                id="episode-grid"
+                style="margin-top: 16px"
+              ></div>
+            </div>
+          </div>
+
+          <div id="detail-error" style="display: none">
+            <div class="empty-state">
+              <div class="empty-icon">😢</div>
+              <h3 class="empty-title">加载失败</h3>
+              <p class="empty-desc" id="error-message"></p>
+              <button
+                class="btn btn-primary"
+                onclick="window.location.href = 'index.html'"
+              >
+                返回首页
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-content">
+          <div class="footer-logo">影视</div>
+          <p class="footer-desc">聚合多源影视资源，提供高清流畅的观影体验</p>
+          <p class="footer-copyright">© 2024 影视 - 仅供学习交流使用</p>
+        </div>
+      </div>
+    </footer>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="src/js/config.js"></script>
+    <script src="src/js/api.js"></script>
+    <script src="src/js/ui.js"></script>
+    <script>
+      const DetailApp = {
+        videoId: null,
+        videoData: null,
+        currentSourceIndex: 0,
+
+        init() {
+          const urlParams = new URLSearchParams(window.location.search);
+          this.videoId = urlParams.get("id");
+
+          if (!this.videoId) {
+            this.showError("缺少视频ID参数");
+            return;
+          }
+
+          this.loadDetail();
+        },
+
+        async loadDetail() {
+          try {
+            const data = await API.getVideoDetail(this.videoId);
+
+            if (!data) {
+              this.showError("未找到该影视信息");
+              return;
+            }
+
+            this.videoData = data;
+            this.renderDetail();
+          } catch (error) {
+            console.error("Load detail error:", error);
+            this.showError(error.message || "加载详情失败");
+          }
+        },
+
+        showError(message) {
+          document.getElementById("detail-loading").style.display = "none";
+          document.getElementById("detail-error").style.display = "block";
+          document.getElementById("error-message").textContent = message;
+        },
+
+        renderDetail() {
+          document.getElementById("detail-loading").style.display = "none";
+          document.getElementById("detail-content").style.display = "block";
+
+          const data = this.videoData;
+
+          document.getElementById("detail-title").textContent = data.vod_name;
+          document.getElementById("detail-poster-img").src = data.vod_pic || "";
+          document.getElementById("detail-poster-img").alt = data.vod_name;
+
+          const metaHtml = [];
+          if (data.type_name) {
+            metaHtml.push(
+              `<div class="detail-meta-item"><span>类型:</span> <strong>${data.type_name}</strong></div>`,
+            );
+          }
+          if (data.vod_director) {
+            metaHtml.push(
+              `<div class="detail-meta-item"><span>导演:</span> <strong>${data.vod_director}</strong></div>`,
+            );
+          }
+          if (data.vod_actor) {
+            metaHtml.push(
+              `<div class="detail-meta-item"><span>演员:</span> <strong>${data.vod_actor}</strong></div>`,
+            );
+          }
+          if (data.vod_remarks) {
+            metaHtml.push(
+              `<div class="detail-meta-item"><span>状态:</span> <strong style="color: var(--amber);">${data.vod_remarks}</strong></div>`,
+            );
+          }
+          if (data.vod_time) {
+            metaHtml.push(
+              `<div class="detail-meta-item"><span>更新:</span> <strong>${data.vod_time}</strong></div>`,
+            );
+          }
+          document.getElementById("detail-meta").innerHTML = metaHtml.join("");
+
+          document.getElementById("detail-desc").textContent =
+            data.vod_content || "暂无剧情简介";
+
+          this.renderSources();
+
+          document
+            .getElementById("play-first-btn")
+            .addEventListener("click", () => {
+              this.playFirst();
+            });
+
+          document.title = `${data.vod_name} - 影视`;
+        },
+
+        renderSources() {
+          const sources = this.videoData.playSources || [];
+          const tabsContainer = document.getElementById("source-tabs");
+          const gridContainer = document.getElementById("episode-grid");
+
+          if (sources.length === 0) {
+            tabsContainer.innerHTML =
+              '<p style="color: var(--text-muted);">暂无播放源</p>';
+            gridContainer.innerHTML = "";
+            return;
+          }
+
+          const m3u8Sources = sources.filter((s) => s.isM3u8);
+          const displaySources = m3u8Sources.length > 0 ? m3u8Sources : sources;
+
+          tabsContainer.innerHTML = displaySources
+            .map(
+              (source, index) => `
+                    <button class="source-tab ${index === this.currentSourceIndex ? "active" : ""}" 
+                            onclick="DetailApp.selectSource(${index})">
+                        ${source.name} ${source.isM3u8 ? "(推荐)" : ""}
+                    </button>
+                `,
+            )
+            .join("");
+
+          this.renderEpisodes(displaySources[this.currentSourceIndex]);
+        },
+
+        selectSource(index) {
+          this.currentSourceIndex = index;
+
+          document.querySelectorAll(".source-tab").forEach((tab, i) => {
+            tab.classList.toggle("active", i === index);
+          });
+
+          const sources = this.videoData.playSources || [];
+          const m3u8Sources = sources.filter((s) => s.isM3u8);
+          const displaySources = m3u8Sources.length > 0 ? m3u8Sources : sources;
+
+          this.renderEpisodes(displaySources[index]);
+        },
+
+        renderEpisodes(source) {
+          const container = document.getElementById("episode-grid");
+
+          if (!source || !source.episodes || source.episodes.length === 0) {
+            container.innerHTML =
+              '<p style="color: var(--text-muted);">暂无剧集</p>';
+            return;
+          }
+
+          container.innerHTML = source.episodes
+            .map(
+              (ep, index) => `
+                    <button class="episode-item" onclick="DetailApp.playEpisode(${index})">
+                        ${ep.name}
+                    </button>
+                `,
+            )
+            .join("");
+        },
+
+        playFirst() {
+          const sources = this.videoData.playSources || [];
+          const m3u8Sources = sources.filter((s) => s.isM3u8);
+          const displaySources = m3u8Sources.length > 0 ? m3u8Sources : sources;
+
+          if (
+            displaySources.length === 0 ||
+            !displaySources[0].episodes ||
+            displaySources[0].episodes.length === 0
+          ) {
+            UI.showToast("暂无可播放的剧集", "error");
+            return;
+          }
+
+          this.playEpisode(0);
+        },
+
+        playEpisode(episodeIndex) {
+          const sources = this.videoData.playSources || [];
+          const m3u8Sources = sources.filter((s) => s.isM3u8);
+          const displaySources = m3u8Sources.length > 0 ? m3u8Sources : sources;
+
+          const source = displaySources[this.currentSourceIndex];
+          if (!source || !source.episodes[episodeIndex]) {
+            UI.showToast("剧集不存在", "error");
+            return;
+          }
+
+          const episode = source.episodes[episodeIndex];
+
+          window.location.href = `player.html?id=${this.videoId}&source=${this.currentSourceIndex}&ep=${episodeIndex}&name=${encodeURIComponent(this.videoData.vod_name)}`;
+        },
+      };
+
+      document.addEventListener("DOMContentLoaded", () => DetailApp.init());
+    </script>
+  </body>
+</html>

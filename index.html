@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="影视资源聚合平台 - 海量高清影视在线观看"
+    />
+    <title>影视 - 首页</title>
+    <link rel="stylesheet" href="src/css/style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-inner">
+        <a href="index.html" class="logo">
+          <div class="logo-icon">🎬</div>
+          <div class="logo-text">影视</div>
+        </a>
+
+        <nav class="nav-menu">
+          <a href="index.html" class="nav-item active">首页</a>
+        </nav>
+
+        <div class="header-actions">
+          <div class="search-box">
+            <input
+              type="text"
+              class="search-input"
+              id="search-input"
+              placeholder="搜索影视..."
+            />
+            <button class="search-btn" id="search-btn">🔍</button>
+          </div>
+
+          <div class="source-selector">
+            <button
+              class="source-selector-btn"
+              id="source-selector-btn"
+              onclick="UI.showSourceModal()"
+            >
+              <span class="source-indicator"></span>
+              <span>数据源</span>
+              <span>▼</span>
+            </button>
+          </div>
+
+          <button class="mobile-menu-btn" id="mobile-menu-btn">☰</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <nav class="category-nav">
+        <div class="container">
+          <div class="category-list" id="category-list">
+            <button class="category-item active" data-id="0">全部</button>
+          </div>
+        </div>
+      </nav>
+
+      <section class="section">
+        <div class="container">
+          <div class="section-header">
+            <h2 class="section-title">
+              <span id="section-title-text">最新影视</span>
+            </h2>
+            <div class="source-selector">
+              <button
+                class="btn btn-secondary btn-sm"
+                onclick="UI.showSourceModal()"
+              >
+                ⚙️ 管理数据源
+              </button>
+            </div>
+          </div>
+
+          <div id="video-container">
+            <div class="loading-overlay active" id="initial-loading">
+              <div class="loading-spinner"></div>
+              <div class="loading-text">正在加载影视数据...</div>
+            </div>
+          </div>
+
+          <div id="pagination-container"></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-content">
+          <div class="footer-logo">影视</div>
+          <p class="footer-desc">聚合多源影视资源，提供高清流畅的观影体验</p>
+          <div class="footer-links">
+            <a href="index.html" class="footer-link">首页</a>
+          </div>
+          <p class="footer-copyright">© 2024 影视 - 仅供学习交流使用</p>
+        </div>
+      </div>
+    </footer>
+
+    <div class="modal-overlay" id="source-modal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title">数据源管理</h3>
+          <button class="modal-close" onclick="UI.hideModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">数据源名称</label>
+            <input
+              type="text"
+              class="form-input"
+              id="source-name-input"
+              placeholder="例如：数据源1"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">API地址</label>
+            <input
+              type="text"
+              class="form-input"
+              id="source-url-input"
+              placeholder="例如：https://api.example.com/api.php/provide/vod/"
+            />
+          </div>
+          <button
+            class="btn btn-primary"
+            style="width: 100%"
+            onclick="App.addSource()"
+          >
+            添加数据源
+          </button>
+
+          <div class="source-list" id="source-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="src/js/config.js"></script>
+    <script src="src/js/api.js"></script>
+    <script src="src/js/ui.js"></script>
+    <script>
+      const App = {
+        currentPage: 1,
+        currentCategory: 0,
+        categories: [],
+        searchKeyword: "",
+
+        async init() {
+          this.bindEvents();
+          UI.updateSourceSelector();
+          await this.loadData();
+        },
+
+        bindEvents() {
+          const searchInput = document.getElementById("search-input");
+          const searchBtn = document.getElementById("search-btn");
+
+          searchBtn.addEventListener("click", () => this.handleSearch());
+          searchInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") this.handleSearch();
+          });
+        },
+
+        handleSearch() {
+          const input = document.getElementById("search-input");
+          this.searchKeyword = input.value.trim();
+          this.currentPage = 1;
+          this.loadData();
+        },
+
+        async loadData() {
+          try {
+            const loading = document.getElementById("initial-loading");
+            if (loading) loading.style.display = "flex";
+
+            const data = await API.getVideoList({
+              page: this.currentPage,
+              type: this.currentCategory || undefined,
+              keyword: this.searchKeyword || undefined,
+            });
+
+            if (loading) loading.style.display = "none";
+
+            this.categories = data.class || [];
+            this.renderCategories();
+            this.renderVideos(data);
+
+            document.getElementById("section-title-text").textContent = this
+              .searchKeyword
+              ? `搜索: ${this.searchKeyword}`
+              : this.currentCategory
+                ? this.getCategoryName(this.currentCategory)
+                : "最新影视";
+          } catch (error) {
+            console.error("Load data error:", error);
+            UI.showToast(error.message || "加载数据失败", "error");
+            document.getElementById("video-container").innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">😢</div>
+                            <h3 class="empty-title">加载失败</h3>
+                            <p class="empty-desc">${error.message || "请检查数据源配置"}</p>
+                            <button class="btn btn-primary" onclick="App.loadData()">重试</button>
+                        </div>
+                    `;
+          }
+        },
+
+        renderCategories() {
+          const container = document.getElementById("category-list");
+          let html = `<button class="category-item ${this.currentCategory === 0 ? "active" : ""}" 
+                                    onclick="App.selectCategory(0)">全部</button>`;
+
+          this.categories.forEach((cat) => {
+            html += `<button class="category-item ${this.currentCategory === cat.type_id ? "active" : ""}" 
+                                     onclick="App.selectCategory(${cat.type_id})">${cat.type_name}</button>`;
+          });
+
+          container.innerHTML = html;
+        },
+
+        selectCategory(categoryId) {
+          this.currentCategory = categoryId;
+          this.currentPage = 1;
+          this.searchKeyword = "";
+          document.getElementById("search-input").value = "";
+          this.loadData();
+        },
+
+        getCategoryName(typeId) {
+          const cat = this.categories.find((c) => c.type_id === typeId);
+          return cat ? cat.type_name : "最新影视";
+        },
+
+        renderVideos(data) {
+          const container = document.getElementById("video-container");
+          container.innerHTML = UI.renderVideoGrid(data.list);
+
+          const paginationContainer = document.getElementById(
+            "pagination-container",
+          );
+          paginationContainer.innerHTML = UI.renderPagination(
+            data.page,
+            data.pagecount,
+            "App.goToPage",
+          );
+
+          if (data.list && data.list.length > 0) {
+            setTimeout(() => UI.loadPostersAsync(data.list), 100);
+          }
+        },
+
+        goToPage(page) {
+          if (page < 1) return;
+          this.currentPage = page;
+          this.loadData();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        },
+
+        goToDetail(videoId) {
+          window.location.href = `detail.html?id=${videoId}`;
+        },
+
+        showSourceModal() {
+          const modal = document.getElementById("source-modal");
+          modal.classList.add("active");
+          this.renderSourceList();
+        },
+
+        renderSourceList() {
+          const sources = SourceManager.getSources();
+          const currentSource = SourceManager.getCurrentSource();
+          const container = document.getElementById("source-list");
+          container.innerHTML = UI.renderSourceList(sources, currentSource?.id);
+        },
+
+        addSource() {
+          const nameInput = document.getElementById("source-name-input");
+          const urlInput = document.getElementById("source-url-input");
+
+          const name = nameInput.value.trim();
+          const url = urlInput.value.trim();
+
+          if (!name) {
+            UI.showToast("请输入数据源名称", "error");
+            return;
+          }
+
+          if (!url) {
+            UI.showToast("请输入API地址", "error");
+            return;
+          }
+
+          if (!url.startsWith("http://") && !url.startsWith("https://")) {
+            UI.showToast("API地址必须以http://或https://开头", "error");
+            return;
+          }
+
+          try {
+            const source = SourceManager.addSource({ name, url });
+            UI.showToast(`数据源 "${name}" 添加成功`, "success");
+            nameInput.value = "";
+            urlInput.value = "";
+            this.renderSourceList();
+            UI.updateSourceSelector();
+          } catch (error) {
+            UI.showToast("添加数据源失败", "error");
+          }
+        },
+
+        deleteSource(sourceId) {
+          if (!confirm("确定要删除这个数据源吗？")) return;
+
+          const success = SourceManager.deleteSource(sourceId);
+          if (success) {
+            UI.showToast("数据源已删除", "success");
+            this.renderSourceList();
+            UI.updateSourceSelector();
+            this.loadData();
+          } else {
+            UI.showToast("至少需要保留一个数据源", "error");
+          }
+        },
+
+        switchSource(sourceId) {
+          SourceManager.setCurrentSource(sourceId);
+          this.renderSourceList();
+          UI.updateSourceSelector();
+          UI.hideModal();
+          this.currentPage = 1;
+          this.currentCategory = 0;
+          this.searchKeyword = "";
+          this.loadData();
+        },
+      };
+
+      document.addEventListener("DOMContentLoaded", () => App.init());
+    </script>
+  </body>
+</html>

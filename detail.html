@@ -200,8 +200,11 @@
           }
           document.getElementById("detail-meta").innerHTML = metaHtml.join("");
 
+          const rawDesc = data.vod_content
+            ? data.vod_content.replace(/<[^>]*>/g, "").trim()
+            : "";
           document.getElementById("detail-desc").textContent =
-            data.vod_content || "暂无剧情简介";
+            rawDesc || "暂无剧情简介";
 
           this.renderSources();
 

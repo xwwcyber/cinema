@@ -152,7 +152,7 @@
     <script>
       // 自动识别视频的额外标签
       function extractTags(video) {
-        const tags = [video.type_name];
+        const tags = video.type_name ? [video.type_name] : [];
         const name = video.vod_name || "";
 
         // 题材标签

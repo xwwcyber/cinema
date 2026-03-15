@@ -226,8 +226,23 @@
 
             if (loading) loading.style.display = "none";
 
-            this.categories = data.class || [];
-            this.renderCategories();
+            // 只在无筛选时更新分类列表，避免筛选后分类被覆盖为空
+            if (
+              !this.currentCategory &&
+              !this.searchKeyword &&
+              data.class &&
+              data.class.length > 0
+            ) {
+              this.categories = data.class;
+              this.renderCategories();
+            } else if (
+              this.categories.length === 0 &&
+              data.class &&
+              data.class.length > 0
+            ) {
+              this.categories = data.class;
+              this.renderCategories();
+            }
             this.renderVideos(data);
 
             document.getElementById("section-title-text").textContent = this
@@ -273,6 +288,7 @@
           this.currentPage = 1;
           this.searchKeyword = "";
           document.getElementById("search-input").value = "";
+          this.renderCategories();
           this.loadData();
         },
 

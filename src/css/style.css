@@ -753,6 +753,31 @@ body::after {
   line-height: 1.4;
 }
 
+.video-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.video-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 0.65rem;
+  color: var(--cyan);
+  background: var(--cyan-dim);
+  border: 1px solid var(--cyan-border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-display);
+  letter-spacing: 0.05em;
+  transition: all 0.2s var(--ease-out);
+}
+
+.video-tag:hover {
+  background: var(--cyan-glow);
+  border-color: var(--cyan);
+}
+
 .video-meta {
   display: flex;
   align-items: center;

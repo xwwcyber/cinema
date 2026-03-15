@@ -150,6 +150,27 @@
     <script src="src/js/api.js"></script>
     <script src="src/js/ui.js"></script>
     <script>
+      // 自动识别视频的额外标签
+      function extractTags(video) {
+        const tags = [video.type_name];
+        const name = video.vod_name || "";
+
+        // 题材标签
+        if (/复仇者|钢铁侠|蜘蛛侠|蝙蝠侠|超人|X战警/.test(name))
+          tags.push("超级英雄");
+        if (/悬疑|推理|侦探|凶手|案件/.test(name)) tags.push("悬疑");
+        if (/爱情|恋爱|情侣|浪漫/.test(name)) tags.push("爱情");
+        if (/喜剧|搞笑|爆笑/.test(name)) tags.push("喜剧");
+        if (/恐怖|惊悚|鬼|僵尸/.test(name)) tags.push("恐怖");
+        if (/动作|功夫|武打|格斗/.test(name)) tags.push("动作");
+        if (/科幻|未来|太空|机器人/.test(name)) tags.push("科幻");
+        if (/战争|军事|二战/.test(name)) tags.push("战争");
+        if (/古装|宫廷|穿越/.test(name)) tags.push("古装");
+        if (/都市|职场|现代/.test(name)) tags.push("都市");
+
+        return [...new Set(tags)].slice(0, 3); // 最多3个标签
+      }
+
       const App = {
         currentPage: 1,
         currentCategory: 0,

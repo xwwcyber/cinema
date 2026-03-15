@@ -98,6 +98,14 @@ const UI = {
   },
 
   renderVideoCard(video) {
+    const tags =
+      typeof extractTags === "function"
+        ? extractTags(video)
+        : [video.type_name];
+    const tagsHtml = tags
+      .map((tag) => `<span class="video-tag">${tag}</span>`)
+      .join("");
+
     return `
             <div class="video-card fade-in" data-id="${video.vod_id}" onclick="App.goToDetail(${video.vod_id})">
                 <div class="video-poster">
@@ -108,10 +116,7 @@ const UI = {
                 </div>
                 <div class="video-info">
                     <h3 class="video-name">${video.vod_name}</h3>
-                    <div class="video-meta">
-                        <span class="video-type">${video.type_name || ""}</span>
-                        <span class="video-remarks">${video.vod_remarks || ""}</span>
-                    </div>
+                    <div class="video-tags">${tagsHtml}</div>
                 </div>
             </div>
         `;

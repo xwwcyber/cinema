@@ -12,9 +12,19 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
+      rel="preload"
+      as="style"
       href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
+      onload="
+        this.onload = null;
+        this.rel = 'stylesheet';
+      "
     />
+    <noscript
+      ><link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap"
+    /></noscript>
   </head>
   <body>
     <header class="header">
@@ -202,12 +212,6 @@
         },
 
         async loadData() {
-          // 防止重复请求
-          if (this.isLoading) {
-            console.log("正在加载中，忽略重复请求");
-            return;
-          }
-
           this.isLoading = true;
 
           try {
@@ -233,6 +237,9 @@
                 ? this.getCategoryName(this.currentCategory)
                 : "最新影视";
           } catch (error) {
+            // 被新请求取消的旧请求，静默忽略
+            if (error.message === "请求超时，请检查网络连接" && this.isLoading)
+              return;
             console.error("Load data error:", error);
             UI.showToast(error.message || "加载数据失败", "error");
             document.getElementById("video-container").innerHTML = `

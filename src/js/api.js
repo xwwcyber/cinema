@@ -1,5 +1,7 @@
 const API = {
-  async fetchWithProxy(url, params = {}) {
+  _listController: null,
+
+  async fetchWithProxy(url, params = {}, signal) {
     const fullUrl = this.buildUrl(url, params);
     const proxyUrl = `${Config.PROXY_URL}?url=${encodeURIComponent(fullUrl)}`;
 
@@ -8,6 +10,11 @@ const API = {
       () => controller.abort(),
       Config.REQUEST_TIMEOUT,
     );
+
+    // 外部取消信号联动
+    if (signal) {
+      signal.addEventListener("abort", () => controller.abort());
+    }
 
     try {
       const response = await fetch(proxyUrl, {
@@ -53,6 +60,12 @@ const API = {
   },
 
   async getVideoList(options = {}) {
+    // 取消上一次未完成的列表请求
+    if (this._listController) {
+      this._listController.abort();
+    }
+    this._listController = new AbortController();
+
     const source = SourceManager.getCurrentSource();
     if (!source) {
       throw new Error("请先配置数据源");
@@ -63,7 +76,11 @@ const API = {
     if (options.type) params.t = options.type;
     if (options.keyword) params.wd = options.keyword;
 
-    const data = await this.fetchWithProxy(source.url, params);
+    const data = await this.fetchWithProxy(
+      source.url,
+      params,
+      this._listController.signal,
+    );
 
     if (typeof data === "string" && data.includes("暂不支持搜索")) {
       throw new Error("当前数据源不支持搜索功能，请切换其他数据源");

@@ -97,7 +97,7 @@ const UI = {
     }
   },
 
-  renderVideoCard(video) {
+  renderVideoCard(video, index = 0) {
     const tags =
       typeof extractTags === "function"
         ? extractTags(video)
@@ -107,7 +107,7 @@ const UI = {
       .join("");
 
     return `
-            <div class="video-card fade-in" data-id="${video.vod_id}" onclick="App.goToDetail(${video.vod_id})">
+            <div class="video-card fade-in" style="--i:${index}" data-id="${video.vod_id}" onclick="App.goToDetail(${video.vod_id})">
                 <div class="video-poster">
                     <div class="video-poster-placeholder" id="poster-${video.vod_id}">
                         <span>🎬</span>
@@ -133,7 +133,7 @@ const UI = {
             `;
     }
 
-    return `<div class="video-grid">${videos.map((v) => this.renderVideoCard(v)).join("")}</div>`;
+    return `<div class="video-grid">${videos.map((v, i) => this.renderVideoCard(v, i)).join("")}</div>`;
   },
 
   renderPagination(currentPage, totalPages, onPageChange) {

@@ -238,13 +238,6 @@
               maxBufferLength: 30,
               maxMaxBufferLength: 60,
               enableWorker: true,
-              xhrSetup: function (xhr, url) {
-                xhr.open(
-                  "GET",
-                  Config.PROXY_URL + "?url=" + encodeURIComponent(url),
-                  true,
-                );
-              },
             });
 
             this.hls.loadSource(url);

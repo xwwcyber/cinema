@@ -56,7 +56,7 @@ const Config = {
       enabled: true,
     },
   ],
-  REQUEST_TIMEOUT: 15000,
+  REQUEST_TIMEOUT: 30000,
   CACHE_DURATION: 5 * 60 * 1000,
   POSTER_CACHE: new Map(),
   DETAIL_CACHE: new Map(),

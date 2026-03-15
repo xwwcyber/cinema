@@ -176,6 +176,7 @@
         currentCategory: 0,
         categories: [],
         searchKeyword: "",
+        loadingController: null,
 
         async init() {
           this.bindEvents();
@@ -201,6 +202,14 @@
         },
 
         async loadData() {
+          // 防止重复请求
+          if (this.isLoading) {
+            console.log("正在加载中，忽略重复请求");
+            return;
+          }
+
+          this.isLoading = true;
+
           try {
             const loading = document.getElementById("initial-loading");
             if (loading) loading.style.display = "flex";
@@ -234,6 +243,8 @@
                             <button class="btn btn-primary" onclick="App.loadData()">重试</button>
                         </div>
                     `;
+          } finally {
+            this.isLoading = false;
           }
         },
 

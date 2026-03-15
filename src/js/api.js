@@ -23,8 +23,18 @@ const API = {
         throw new Error(`HTTP error: ${response.status}`);
       }
 
-      const data = await response.json();
-      return data;
+      const text = await response.text();
+
+      // 检查是否是纯文本错误消息
+      if (text.includes("暂不支持搜索")) {
+        return text;
+      }
+
+      try {
+        return JSON.parse(text);
+      } catch (e) {
+        throw new Error("数据格式错误");
+      }
     } catch (error) {
       clearTimeout(timeoutId);
       if (error.name === "AbortError") {

@@ -1,9 +1,11 @@
 const Config = {
-  PROXY_URL:
-    window.location.hostname === "localhost" ||
-    window.location.hostname === "127.0.0.1"
-      ? "http://localhost:3001/proxy"
-      : "https://cinema-proxy.xwwcyber.workers.dev/proxy",
+  PROXY_URL: (() => {
+    const host = window.location.hostname;
+    if (host === "localhost" || host === "127.0.0.1")
+      return "http://localhost:3001/proxy";
+    if (host.includes("vercel.app")) return "/api/proxy";
+    return "https://cinema-proxy.xwwcyber.workers.dev/proxy";
+  })(),
   STORAGE_KEYS: {
     SOURCES: "cinema_sources",
     CURRENT_SOURCE: "cinema_current_source",

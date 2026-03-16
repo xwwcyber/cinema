@@ -71,6 +71,7 @@
               </div>
               <div class="detail-info">
                 <h1 class="detail-title" id="detail-title"></h1>
+                <div class="detail-source" id="detail-source"></div>
                 <div class="detail-meta" id="detail-meta"></div>
                 <p class="detail-desc" id="detail-desc"></p>
                 <div class="detail-actions">
@@ -190,6 +191,13 @@
           document.getElementById("detail-title").textContent = data.vod_name;
           document.getElementById("detail-poster-img").src = data.vod_pic || "";
           document.getElementById("detail-poster-img").alt = data.vod_name;
+
+          // 显示数据源
+          const currentSource = SourceManager.getCurrentSource();
+          if (currentSource) {
+            document.getElementById("detail-source").textContent =
+              `来源: ${currentSource.name}`;
+          }
 
           const metaHtml = [];
           if (data.type_name) {

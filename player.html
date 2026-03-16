@@ -41,10 +41,7 @@
 
         <div class="header-actions">
           <div class="source-selector">
-            <button
-              class="source-selector-btn"
-              onclick="window.location.href = 'index.html'"
-            >
+            <button class="source-selector-btn" onclick="history.back()">
               <span>返回首页</span>
             </button>
           </div>
@@ -121,6 +118,7 @@
     <div class="toast" id="toast"></div>
 
     <script src="src/js/config.js"></script>
+    <script src="src/js/store.js"></script>
     <script src="src/js/api.js"></script>
     <script src="src/js/ui.js"></script>
     <script>
@@ -220,6 +218,15 @@
 
           this.episodeIndex = episodeIndex;
           const episode = source.episodes[episodeIndex];
+
+          // 记录观看历史
+          HistoryManager.add({
+            videoId: Number(this.videoId),
+            name: this.videoName,
+            pic: this.videoData.vod_pic || "",
+            lastEp: episode.name,
+            sourceName: source.name || "",
+          });
 
           document.getElementById("video-episode-info").textContent =
             `正在播放: ${episode.name}`;

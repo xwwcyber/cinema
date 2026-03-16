@@ -81,6 +81,60 @@
   --radius-xl: 20px;
 }
 
+/* --- Light Theme --- */
+[data-theme="light"] {
+  /* Light backgrounds */
+  --bg-deep: #f5f7fa;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fb;
+  --bg-card: rgba(255, 255, 255, 0.95);
+  --bg-card-solid: #ffffff;
+  --bg-card-hover: rgba(248, 249, 251, 1);
+  --bg-surface: #f0f2f5;
+  --bg-glass: rgba(255, 255, 255, 0.8);
+
+  /* Amber adjustments for light mode */
+  --amber: #d97706;
+  --amber-light: #f59e0b;
+  --amber-glow: rgba(217, 119, 6, 0.08);
+  --amber-dim: rgba(217, 119, 6, 0.04);
+  --amber-border: rgba(217, 119, 6, 0.2);
+
+  /* Teal adjustments */
+  --teal: #0891b2;
+  --teal-light: #06b6d4;
+  --teal-glow: rgba(8, 145, 178, 0.08);
+  --teal-dim: rgba(8, 145, 178, 0.04);
+  --teal-border: rgba(8, 145, 178, 0.15);
+
+  /* Violet adjustments */
+  --violet: #7c3aed;
+  --violet-dim: rgba(124, 58, 237, 0.04);
+  --violet-glow: rgba(124, 58, 237, 0.08);
+
+  /* Light mode typography */
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --text-warm: #92400e;
+
+  /* Light mode borders */
+  --border: rgba(0, 0, 0, 0.08);
+  --border-hover: rgba(217, 119, 6, 0.3);
+  --border-subtle: rgba(0, 0, 0, 0.04);
+
+  /* Light mode shadows */
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-card-hover:
+    0 10px 30px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(217, 119, 6, 0.1),
+    0 0 40px rgba(217, 119, 6, 0.06);
+  --shadow-glow:
+    0 0 15px rgba(217, 119, 6, 0.08), 0 0 40px rgba(124, 58, 237, 0.04);
+  --shadow-glow-strong:
+    0 0 20px rgba(217, 119, 6, 0.12), 0 4px 20px rgba(0, 0, 0, 0.1);
+  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
 /* --- 2. Reset & Base --- */
 *,
 *::before,
@@ -442,6 +496,29 @@ body::after {
   border-color: var(--border-hover);
   color: var(--amber-light);
   background: var(--amber-dim);
+}
+
+/* Theme Toggle Button */
+.theme-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s var(--ease-out);
+}
+
+.theme-toggle-btn:hover {
+  border-color: var(--amber-border);
+  color: var(--amber);
+  background: var(--amber-dim);
+  transform: rotate(180deg);
 }
 
 .source-indicator {
@@ -2016,20 +2093,28 @@ body::after {
 
 /* --- Favorite Button --- */
 .btn-favorite {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border);
-  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--text-primary);
   transition: all 0.3s;
+  font-weight: 500;
 }
 .btn-favorite:hover {
-  border-color: var(--amber-border);
+  border-color: var(--amber);
   color: var(--amber);
   background: var(--amber-dim);
+  box-shadow: 0 0 20px rgba(240, 180, 66, 0.15);
+  transform: translateY(-2px);
 }
 .btn-favorite.favorited {
   color: var(--amber);
-  border-color: var(--amber-border);
+  border-color: var(--amber);
+  background: var(--amber-glow);
+  box-shadow: 0 0 20px rgba(240, 180, 66, 0.2);
+}
+.btn-favorite.favorited:hover {
   background: var(--amber-dim);
+  box-shadow: 0 0 25px rgba(240, 180, 66, 0.25);
 }
 
 /* --- 22. Responsive --- */

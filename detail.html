@@ -36,6 +36,15 @@
         </nav>
 
         <div class="header-actions">
+          <button
+            class="theme-toggle-btn"
+            id="theme-toggle-btn"
+            onclick="toggleTheme()"
+            title="切换主题"
+          >
+            🌙
+          </button>
+
           <div class="source-selector">
             <button class="source-selector-btn" onclick="history.back()">
               <span>返回首页</span>
@@ -328,7 +337,7 @@
           const btn = document.getElementById("favorite-btn");
           if (!btn || !this.videoData) return;
           const isFav = FavoriteManager.isFavorite(Number(this.videoId));
-          btn.innerHTML = isFav ? "★ 已收藏" : "☆ 收藏";
+          btn.innerHTML = isFav ? "★ 已收藏" : "♡ 加入收藏";
           btn.classList.toggle("favorited", isFav);
         },
 
@@ -345,7 +354,28 @@
         },
       };
 
-      document.addEventListener("DOMContentLoaded", () => DetailApp.init());
+      function toggleTheme() {
+        const newTheme = ThemeManager.toggle();
+        updateThemeIcon();
+        UI.showToast(
+          newTheme === "dark" ? "已切换到深色模式" : "已切换到浅色模式",
+          "success",
+        );
+      }
+
+      function updateThemeIcon() {
+        const btn = document.getElementById("theme-toggle-btn");
+        if (btn) {
+          const theme = ThemeManager.getTheme();
+          btn.textContent = theme === "dark" ? "🌙" : "☀️";
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        ThemeManager.init();
+        updateThemeIcon();
+        DetailApp.init();
+      });
     </script>
   </body>
 </html>

@@ -11,6 +11,7 @@ const Config = {
     CURRENT_SOURCE: "cinema_current_source",
     FAVORITES: "cinema_favorites",
     HISTORY: "cinema_history",
+    THEME: "cinema_theme",
   },
   DEFAULT_SOURCES: [
     {
@@ -164,5 +165,28 @@ const SourceManager = {
       this.setCurrentSource(filtered[0].id);
     }
     return true;
+  },
+};
+
+const ThemeManager = {
+  getTheme() {
+    return Storage.get(Config.STORAGE_KEYS.THEME) || "dark";
+  },
+
+  setTheme(theme) {
+    Storage.set(Config.STORAGE_KEYS.THEME, theme);
+    document.documentElement.setAttribute("data-theme", theme);
+  },
+
+  toggle() {
+    const current = this.getTheme();
+    const newTheme = current === "dark" ? "light" : "dark";
+    this.setTheme(newTheme);
+    return newTheme;
+  },
+
+  init() {
+    const theme = this.getTheme();
+    document.documentElement.setAttribute("data-theme", theme);
   },
 };

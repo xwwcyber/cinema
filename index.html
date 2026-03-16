@@ -75,6 +75,15 @@
             <button class="search-btn" id="search-btn">🔍</button>
           </div>
 
+          <button
+            class="theme-toggle-btn"
+            id="theme-toggle-btn"
+            onclick="App.toggleTheme()"
+            title="切换主题"
+          >
+            🌙
+          </button>
+
           <div class="source-selector">
             <button
               class="source-selector-btn"
@@ -257,6 +266,8 @@
         currentView: "home", // "home" | "history" | "favorites"
 
         async init() {
+          ThemeManager.init();
+          this.updateThemeIcon();
           this.bindEvents();
           UI.updateSourceSelector();
           await this.loadData();
@@ -618,6 +629,23 @@
             FavoriteManager.remove(videoId);
             UI.showToast("已取消收藏", "success");
             this.showFavorites();
+          }
+        },
+
+        toggleTheme() {
+          const newTheme = ThemeManager.toggle();
+          this.updateThemeIcon();
+          UI.showToast(
+            newTheme === "dark" ? "已切换到深色模式" : "已切换到浅色模式",
+            "success",
+          );
+        },
+
+        updateThemeIcon() {
+          const btn = document.getElementById("theme-toggle-btn");
+          if (btn) {
+            const theme = ThemeManager.getTheme();
+            btn.textContent = theme === "dark" ? "🌙" : "☀️";
           }
         },
       };

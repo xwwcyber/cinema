@@ -479,6 +479,57 @@ body::after {
   transition: all 0.3s;
 }
 
+/* Mobile search button — only visible at 480px and below */
+.mobile-search-btn {
+  display: none;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  font-size: 1.1rem;
+  transition: all 0.3s;
+}
+
+/* Mobile search bar — slides down below header */
+.mobile-search-bar {
+  display: none;
+  position: fixed;
+  top: 70px;
+  left: 0;
+  right: 0;
+  z-index: 999;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 16px;
+  transform: translateY(-100%);
+  opacity: 0;
+  transition:
+    transform 0.3s var(--ease-out),
+    opacity 0.3s var(--ease-out);
+}
+.mobile-search-bar.active {
+  transform: translateY(0);
+  opacity: 1;
+}
+.mobile-search-inner {
+  display: flex;
+  gap: 8px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+.mobile-search-inner .search-input {
+  flex: 1;
+  width: auto;
+  min-width: 0;
+}
+.mobile-search-inner .search-btn {
+  flex-shrink: 0;
+}
+
 /* --- 9. Buttons --- */
 .btn {
   display: inline-flex;
@@ -683,6 +734,44 @@ body::after {
   box-shadow: var(--shadow-card);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+}
+
+.video-card-delete {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(248, 113, 113, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s var(--ease-out);
+  opacity: 0;
+  transform: scale(0.8);
+}
+
+.video-card:hover .video-card-delete {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.video-card-delete:hover {
+  background: rgba(248, 113, 113, 1);
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(248, 113, 113, 0.4);
+}
+
+.video-card-content {
+  width: 100%;
+  height: 100%;
 }
 
 .video-card:hover {
@@ -1917,6 +2006,32 @@ body::after {
   animation: slideUp 0.5s var(--ease-out) forwards;
 }
 
+/* --- Collection Section (History / Favorites) --- */
+.collection-section {
+  padding: 20px 0;
+}
+.collection-section .section-header {
+  margin-bottom: 20px;
+}
+
+/* --- Favorite Button --- */
+.btn-favorite {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  transition: all 0.3s;
+}
+.btn-favorite:hover {
+  border-color: var(--amber-border);
+  color: var(--amber);
+  background: var(--amber-dim);
+}
+.btn-favorite.favorited {
+  color: var(--amber);
+  border-color: var(--amber-border);
+  background: var(--amber-dim);
+}
+
 /* --- 22. Responsive --- */
 @media (max-width: 1024px) {
   .video-grid {
@@ -2047,6 +2162,13 @@ body::after {
   .search-box {
     display: none;
   }
+  .mobile-search-btn {
+    display: flex;
+  }
+  .mobile-search-bar {
+    display: block;
+    top: 60px;
+  }
   .category-list {
     padding: 0 14px;
   }
@@ -2060,6 +2182,14 @@ body::after {
   }
   .detail-poster {
     width: 170px;
+  }
+  .detail-actions {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .detail-actions .btn {
+    font-size: 0.8rem;
+    padding: 8px 16px;
   }
 }
 

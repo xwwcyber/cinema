@@ -35,7 +35,33 @@
         </a>
 
         <nav class="nav-menu">
-          <a href="index.html" class="nav-item active">首页</a>
+          <a
+            href="#"
+            class="nav-item active"
+            onclick="
+              App.showHome();
+              return false;
+            "
+            >首页</a
+          >
+          <a
+            href="#"
+            class="nav-item"
+            onclick="
+              App.showHistory();
+              return false;
+            "
+            >历史</a
+          >
+          <a
+            href="#"
+            class="nav-item"
+            onclick="
+              App.showFavorites();
+              return false;
+            "
+            >收藏</a
+          >
         </nav>
 
         <div class="header-actions">
@@ -62,12 +88,52 @@
           </div>
 
           <button class="mobile-menu-btn" id="mobile-menu-btn">☰</button>
+          <button class="mobile-search-btn" id="mobile-search-btn">🔍</button>
         </div>
       </div>
     </header>
 
+    <div class="mobile-search-bar" id="mobile-search-bar">
+      <div class="mobile-search-inner">
+        <input
+          type="text"
+          class="search-input"
+          id="mobile-search-input"
+          placeholder="搜索影视..."
+        />
+        <button class="search-btn" id="mobile-search-submit">🔍</button>
+      </div>
+    </div>
+
     <main class="main-content">
-      <nav class="category-nav">
+      <section
+        class="collection-section"
+        id="collection-section"
+        style="display: none"
+      >
+        <div class="container">
+          <div class="section-header">
+            <h2 class="section-title">
+              <span id="collection-title">历史记录</span>
+            </h2>
+            <div>
+              <button
+                class="btn btn-secondary btn-sm"
+                id="collection-clear-btn"
+                style="display: none"
+              >
+                清空历史
+              </button>
+              <button class="btn btn-secondary btn-sm" onclick="App.showHome()">
+                返回首页
+              </button>
+            </div>
+          </div>
+          <div id="collection-container"></div>
+        </div>
+      </section>
+
+      <nav class="category-nav" id="category-nav">
         <div class="container">
           <div class="category-list" id="category-list">
             <button class="category-item active" data-id="0">全部</button>
@@ -157,6 +223,7 @@
     <div class="toast" id="toast"></div>
 
     <script src="src/js/config.js"></script>
+    <script src="src/js/store.js"></script>
     <script src="src/js/api.js"></script>
     <script src="src/js/ui.js"></script>
     <script>
@@ -187,6 +254,7 @@
         categories: [],
         searchKeyword: "",
         loadingController: null,
+        currentView: "home", // "home" | "history" | "favorites"
 
         async init() {
           this.bindEvents();
@@ -202,6 +270,50 @@
           searchInput.addEventListener("keypress", (e) => {
             if (e.key === "Enter") this.handleSearch();
           });
+
+          // 移动端搜索
+          const mobileSearchBtn = document.getElementById("mobile-search-btn");
+          const mobileSearchInput = document.getElementById(
+            "mobile-search-input",
+          );
+          const mobileSearchSubmit = document.getElementById(
+            "mobile-search-submit",
+          );
+
+          if (mobileSearchBtn) {
+            mobileSearchBtn.addEventListener("click", () =>
+              this.toggleMobileSearch(),
+            );
+          }
+          if (mobileSearchSubmit) {
+            mobileSearchSubmit.addEventListener("click", () =>
+              this.handleMobileSearch(),
+            );
+          }
+          if (mobileSearchInput) {
+            mobileSearchInput.addEventListener("keypress", (e) => {
+              if (e.key === "Enter") this.handleMobileSearch();
+            });
+          }
+        },
+
+        toggleMobileSearch() {
+          const bar = document.getElementById("mobile-search-bar");
+          bar.classList.toggle("active");
+          if (bar.classList.contains("active")) {
+            document.getElementById("mobile-search-input").focus();
+          }
+        },
+
+        handleMobileSearch() {
+          const input = document.getElementById("mobile-search-input");
+          this.searchKeyword = input.value.trim();
+          this.currentPage = 1;
+          document
+            .getElementById("mobile-search-bar")
+            .classList.remove("active");
+          this.showHome();
+          this.loadData();
         },
 
         handleSearch() {
@@ -396,6 +508,117 @@
           this.currentCategory = 0;
           this.searchKeyword = "";
           this.loadData();
+        },
+
+        // 视图切换
+        _setActiveNav(view) {
+          document.querySelectorAll(".nav-menu .nav-item").forEach((el) => {
+            el.classList.remove("active");
+          });
+          const idx = { home: 0, history: 1, favorites: 2 }[view] || 0;
+          const items = document.querySelectorAll(".nav-menu .nav-item");
+          if (items[idx]) items[idx].classList.add("active");
+        },
+
+        showHome() {
+          this.currentView = "home";
+          this._setActiveNav("home");
+          document.getElementById("collection-section").style.display = "none";
+          document.getElementById("category-nav").style.display = "";
+          document.querySelector(".section").style.display = "";
+        },
+
+        showHistory() {
+          this.currentView = "history";
+          this._setActiveNav("history");
+          document.getElementById("category-nav").style.display = "none";
+          document.querySelector(".section").style.display = "none";
+          document.getElementById("collection-section").style.display = "";
+          document.getElementById("collection-title").textContent = "历史记录";
+
+          const clearBtn = document.getElementById("collection-clear-btn");
+          clearBtn.style.display = "";
+          clearBtn.textContent = "清空历史";
+          clearBtn.onclick = () => {
+            if (!confirm("确定要清空所有历史记录吗？")) return;
+            HistoryManager.clear();
+            this.showHistory();
+          };
+
+          const list = HistoryManager.getAll();
+          this._renderCollection(list);
+        },
+
+        showFavorites() {
+          this.currentView = "favorites";
+          this._setActiveNav("favorites");
+          document.getElementById("category-nav").style.display = "none";
+          document.querySelector(".section").style.display = "none";
+          document.getElementById("collection-section").style.display = "";
+          document.getElementById("collection-title").textContent = "我的收藏";
+          document.getElementById("collection-clear-btn").style.display =
+            "none";
+
+          const list = FavoriteManager.getAll();
+          this._renderCollection(list);
+        },
+
+        _renderCollection(list) {
+          const container = document.getElementById("collection-container");
+          if (!list || list.length === 0) {
+            container.innerHTML = `
+              <div class="empty-state">
+                <div class="empty-icon">🎬</div>
+                <h3 class="empty-title">暂无数据</h3>
+                <p class="empty-desc">${this.currentView === "history" ? "还没有观看记录" : "还没有收藏内容"}</p>
+              </div>`;
+            return;
+          }
+
+          const isHistory = this.currentView === "history";
+          const isFavorites = this.currentView === "favorites";
+
+          const cards = list
+            .map(
+              (item, i) => `
+            <div class="video-card fade-in" style="--i:${i}">
+              ${
+                isHistory || isFavorites
+                  ? `
+                <button class="video-card-delete" onclick="event.stopPropagation(); App.deleteCollectionItem(${item.videoId})" title="删除">
+                  ✕
+                </button>
+              `
+                  : ""
+              }
+              <div class="video-card-content" onclick="App.goToDetail(${item.videoId})">
+                <div class="video-poster">
+                  <div class="video-poster-placeholder">
+                    ${item.pic ? `<img src="${item.pic}" alt="${item.name}" loading="lazy">` : "<span>🎬</span>"}
+                  </div>
+                </div>
+                <div class="video-info">
+                  <h3 class="video-name">${item.name}</h3>
+                  ${item.lastEp ? `<div class="video-tags"><span class="video-tag">${item.lastEp}</span></div>` : ""}
+                </div>
+              </div>
+            </div>`,
+            )
+            .join("");
+
+          container.innerHTML = `<div class="video-grid">${cards}</div>`;
+        },
+
+        deleteCollectionItem(videoId) {
+          if (this.currentView === "history") {
+            HistoryManager.remove(videoId);
+            UI.showToast("已删除历史记录", "success");
+            this.showHistory();
+          } else if (this.currentView === "favorites") {
+            FavoriteManager.remove(videoId);
+            UI.showToast("已取消收藏", "success");
+            this.showFavorites();
+          }
         },
       };
 

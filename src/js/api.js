@@ -1,7 +1,15 @@
 const API = {
   _listController: null,
+  _posterController: null,
 
-  async fetchWithProxy(url, params = {}, signal) {
+  cancelPosterRequests() {
+    if (this._posterController) {
+      this._posterController.abort();
+    }
+    this._posterController = new AbortController();
+  },
+
+  async fetchWithProxy(url, params = {}, signal, retries = 2) {
     const fullUrl = this.buildUrl(url, params);
     const proxyUrl = `${Config.PROXY_URL}?url=${encodeURIComponent(fullUrl)}`;
 
@@ -13,6 +21,10 @@ const API = {
 
     // 外部取消信号联动
     if (signal) {
+      if (signal.aborted) {
+        clearTimeout(timeoutId);
+        throw new Error("请求已取消");
+      }
       signal.addEventListener("abort", () => controller.abort());
     }
 
@@ -27,6 +39,12 @@ const API = {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
+        const text = await response.text();
+        // Cloudflare 限速，自动重试
+        if (text.includes("1015") && retries > 0) {
+          await new Promise((r) => setTimeout(r, 1000));
+          return this.fetchWithProxy(url, params, signal, retries - 1);
+        }
         throw new Error(`HTTP error: ${response.status}`);
       }
 
@@ -40,6 +58,12 @@ const API = {
       try {
         return JSON.parse(text);
       } catch (e) {
+        // Cloudflare 限速返回非JSON内容，自动重试
+        if (text.includes("1015") && retries > 0) {
+          await new Promise((r) => setTimeout(r, 1000));
+          return this.fetchWithProxy(url, params, signal, retries - 1);
+        }
+        console.error("JSON解析失败，响应内容:", text.substring(0, 500));
         throw new Error("数据格式错误");
       }
     } catch (error) {
@@ -89,7 +113,7 @@ const API = {
     return this.normalizeListData(data);
   },
 
-  async getVideoDetail(videoId) {
+  async getVideoDetail(videoId, signal) {
     const cacheKey = `detail_${videoId}`;
     const cached = Config.DETAIL_CACHE.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < Config.CACHE_DURATION) {
@@ -97,10 +121,14 @@ const API = {
     }
 
     const source = SourceManager.getCurrentSource();
-    const data = await this.fetchWithProxy(source.url, {
-      ac: "detail",
-      ids: videoId,
-    });
+    const data = await this.fetchWithProxy(
+      source.url,
+      {
+        ac: "detail",
+        ids: videoId,
+      },
+      signal,
+    );
 
     const normalized = this.normalizeDetailData(data);
 
@@ -115,7 +143,7 @@ const API = {
     return null;
   },
 
-  async getPosterWithCache(videoId) {
+  async getPosterWithCache(videoId, signal) {
     const cacheKey = `poster_${videoId}`;
     const cached = Config.POSTER_CACHE.get(cacheKey);
     if (cached) {
@@ -123,7 +151,7 @@ const API = {
     }
 
     try {
-      const detail = await this.getVideoDetail(videoId);
+      const detail = await this.getVideoDetail(videoId, signal);
       if (detail && detail.vod_pic) {
         limitedCacheSet(Config.POSTER_CACHE, cacheKey, detail.vod_pic);
         return detail.vod_pic;
@@ -155,9 +183,9 @@ const API = {
         vod_remarks: item.vod_remarks,
         vod_play_from: item.vod_play_from,
       })),
-      page: data.page || 1,
-      pagecount: data.pagecount || 1,
-      total: data.total || 0,
+      page: parseInt(data.page) || 1,
+      pagecount: parseInt(data.pagecount) || 1,
+      total: parseInt(data.total) || 0,
       class: data.class || [],
     };
   },

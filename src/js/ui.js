@@ -246,13 +246,18 @@ const UI = {
   },
 
   async loadPostersAsync(videos) {
-    const batchSize = 5;
+    // 取消上一页未完成的海报请求
+    API.cancelPosterRequests();
+    const signal = API._posterController.signal;
+
+    const batchSize = 3;
     for (let i = 0; i < videos.length; i += batchSize) {
+      if (signal.aborted) return;
       const batch = videos.slice(i, i + batchSize);
       await Promise.all(
         batch.map(async (video) => {
           try {
-            const poster = await API.getPosterWithCache(video.vod_id);
+            const poster = await API.getPosterWithCache(video.vod_id, signal);
             const posterEl = document.getElementById(`poster-${video.vod_id}`);
             if (posterEl && poster) {
               posterEl.innerHTML = `<img src="${poster}" alt="${video.vod_name}" loading="lazy">`;
@@ -262,6 +267,10 @@ const UI = {
           }
         }),
       );
+      // 批次间延迟，避免触发限速
+      if (i + batchSize < videos.length) {
+        await new Promise((r) => setTimeout(r, 300));
+      }
     }
   },
 
